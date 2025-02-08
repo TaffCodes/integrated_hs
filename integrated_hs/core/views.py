@@ -2,8 +2,9 @@ import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm
-from .models import Patient, Doctor, Nurse, Receptionist
+from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm, AppointmentForm
+from .models import Patient, Doctor, Nurse, Receptionist, Appointment
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -141,3 +142,21 @@ def staff_login(request):
 def user_logout(request):
     logout(request)
     return redirect('hello')
+
+@login_required
+def make_appointment(request):
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.patient = request.user.patient
+
+            # Check if the slot is available
+            if Appointment.objects.filter(doctor=appointment.doctor, date=appointment.date).exists():
+                form.add_error('date', 'This slot is already taken.')
+            else:
+                appointment.save()
+                return redirect('patient_dashboard')
+    else:
+        form = AppointmentForm()
+    return render(request, './make_appointment.html', {'form': form})
