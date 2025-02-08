@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot
+from .models import User, Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from django.utils.timezone import is_aware, make_naive
@@ -80,3 +80,18 @@ class DoctorAvailabilityForm(forms.ModelForm):
 
 class DoctorDashboardForm(forms.Form):
     date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=True, label="Select Date")
+
+
+
+class DiagnosisForm(forms.ModelForm):
+    appointment = forms.ModelChoiceField(queryset=Appointment.objects.none(), required=True, label="Select Appointment")
+
+    class Meta:
+        model = Diagnosis
+        fields = ['appointment', 'diagnosis_text', 'inpatient_advice']
+
+    def __init__(self, *args, **kwargs):
+        doctor = kwargs.pop('doctor', None)
+        super().__init__(*args, **kwargs)
+        if doctor:
+            self.fields['appointment'].queryset = Appointment.objects.filter(doctor=doctor).order_by('date')

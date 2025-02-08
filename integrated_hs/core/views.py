@@ -2,8 +2,8 @@ import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm, AppointmentForm, DoctorAvailabilityForm, DoctorDashboardForm
-from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot
+from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm, AppointmentForm, DoctorAvailabilityForm, DoctorDashboardForm, DiagnosisForm
+from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from django.utils.timezone import is_naive, make_naive
@@ -231,3 +231,41 @@ def doctor_availability(request):
         form = DoctorAvailabilityForm()
     return render(request, './doctor_availability.html', {'form': form})
 
+
+@login_required
+def doctor_dashboard(request):
+    form = DoctorDashboardForm(request.POST or None)
+    time_slots = None
+    appointments = None
+
+    if request.method == 'POST' and form.is_valid():
+        date = form.cleaned_data['date']
+        doctor = request.user.doctor
+        time_slots = TimeSlot.objects.filter(doctor=doctor, date=date).order_by('start_time')
+        appointments = Appointment.objects.filter(doctor=doctor, date__date=date).order_by('date')
+        return render(request, './appointments.html', {'date': date, 'appointments': appointments})
+
+    return render(request, './doctor_dashboard.html', {'form': form, 'time_slots': time_slots, 'appointments': appointments})
+
+@login_required
+def create_diagnosis(request, appointment_id):
+    appointment = Appointment.objects.get(id=appointment_id)
+    if request.method == 'POST':
+        diagnosis_form = DiagnosisForm(request.POST, doctor=request.user.doctor)
+        if diagnosis_form.is_valid():
+            diagnosis = diagnosis_form.save(commit=False)
+            diagnosis.doctor = request.user.doctor
+            diagnosis.patient = appointment.patient
+            diagnosis.appointment = appointment
+            diagnosis.save()
+            return redirect('doctor_dashboard')
+    else:
+        diagnosis_form = DiagnosisForm(doctor=request.user.doctor)
+
+    return render(request, './create_diagnosis.html', {'appointment': appointment, 'diagnosis_form': diagnosis_form})
+
+@login_required
+def doctor_diagnoses(request):
+    doctor = request.user.doctor
+    diagnoses = Diagnosis.objects.filter(doctor=doctor).order_by('appointment__date')
+    return render(request, './doctor_diagnoses.html', {'diagnoses': diagnoses})

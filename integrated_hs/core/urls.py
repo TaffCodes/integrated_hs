@@ -18,5 +18,7 @@ urlpatterns = [
     path('make_appointment/', views.make_appointment, name='make_appointment'),
     path('doctor_availability/', views.doctor_availability, name='doctor_availability'),
     path('ajax/get_timeslots/', views.get_available_timeslots, name='get_timeslots'),
-    
+    path('appointments/', views.make_appointment, name='appointments'),
+    path('create_diagnosis/<int:appointment_id>/', views.create_diagnosis, name='create_diagnosis'),
+    path('doctor_diagnoses/', views.doctor_diagnoses, name='doctor_diagnoses'),
 ]

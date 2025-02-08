@@ -3,8 +3,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Receptionist Dashboard</title>
+    <title>Create Diagnosis</title>
     <style>
+        .logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -18,6 +34,7 @@
             color: white;
             padding: 10px 0;
             text-align: center;
+            position: relative;
         }
 
         nav ul {
@@ -47,36 +64,29 @@
         .content {
             padding: 20px;
         }
-        .logout-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
 
-        .logout-button:hover {
-            background-color: #d32f2f;
+        .diagnosis-form {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Receptionist Dashboard</h1>
+        <h1>Create Diagnosis</h1>
         {% if user.is_authenticated %}
-            <form method="post" action="{% url 'logout' %}">
+            <form method="post" action="{% url 'user_logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="logout-button">Logout</button>
             </form>
         {% endif %}
     </header>
     <main class="content">
-        <h1>Welcome, {{ user.username }}</h1>
-        <p>This is your dashboard.</p>
+        <h1>Create Diagnosis for Appointment with {{ appointment.patient.user.username }}</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ diagnosis_form.as_p }}
+            <button type="submit">Create Diagnosis</button>
+        </form>
     </main>
     <footer>
         <p>&copy; 2025 Hospital Integrated System</p>
