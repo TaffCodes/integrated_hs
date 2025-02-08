@@ -2,9 +2,12 @@ import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm, AppointmentForm
-from .models import Patient, Doctor, Nurse, Receptionist, Appointment
+from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm, AppointmentForm, DoctorAvailabilityForm, DoctorDashboardForm
+from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot
 from django.core.exceptions import ValidationError
+from datetime import datetime, timedelta
+from django.utils.timezone import is_naive, make_naive
+
 
 logger = logging.getLogger(__name__)
 
@@ -120,11 +123,24 @@ def receptionist_login(request):
 
 @login_required
 def patient_dashboard(request):
-    return render(request, './patient_dashboard.html')
+    patient = request.user.patient
+    appointments = Appointment.objects.filter(patient=patient).order_by('date')
+    return render(request, './patient_dashboard.html', {'appointments': appointments})
 
 @login_required
 def doctor_dashboard(request):
-    return render(request, './doctor_dashboard.html')
+    form = DoctorDashboardForm(request.POST or None)
+    time_slots = None
+    appointments = None
+
+    if request.method == 'POST' and form.is_valid():
+        date = form.cleaned_data['date']
+        doctor = request.user.doctor
+        time_slots = TimeSlot.objects.filter(doctor=doctor, date=date).order_by('start_time')
+        appointments = Appointment.objects.filter(doctor=doctor, date__date=date).order_by('date')
+
+    return render(request, './doctor_dashboard.html', {'form': form, 'time_slots': time_slots, 'appointments': appointments})
+
 
 @login_required
 def nurse_dashboard(request):
@@ -143,6 +159,26 @@ def user_logout(request):
     logout(request)
     return redirect('hello')
 
+
+# views.py
+from django.http import JsonResponse
+from .models import TimeSlot
+
+def get_available_timeslots(request):
+    doctor_id = request.GET.get('doctor_id')
+    if doctor_id:
+        time_slots = TimeSlot.objects.filter(doctor_id=doctor_id).order_by('date', 'start_time')
+        data = [
+            {
+                'id': ts.id,
+                'label': ts.get_label(),  # assuming you have a method get_label() that formats the slot
+            }
+            for ts in time_slots
+        ]
+        return JsonResponse({'time_slots': data})
+    return JsonResponse({'time_slots': []})
+
+
 @login_required
 def make_appointment(request):
     if request.method == 'POST':
@@ -150,13 +186,48 @@ def make_appointment(request):
         if form.is_valid():
             appointment = form.save(commit=False)
             appointment.patient = request.user.patient
-
-            # Check if the slot is available
-            if Appointment.objects.filter(doctor=appointment.doctor, date=appointment.date).exists():
-                form.add_error('date', 'This slot is already taken.')
-            else:
-                appointment.save()
-                return redirect('patient_dashboard')
+            time_slot = form.cleaned_data['time_slot']
+            appointment.date = datetime.combine(time_slot.date, time_slot.start_time)
+            appointment.duration = timedelta(minutes=45)
+            appointment.save()
+            return redirect('patient_dashboard')
     else:
         form = AppointmentForm()
     return render(request, './make_appointment.html', {'form': form})
+
+
+
+logger = logging.getLogger(__name__)
+
+@login_required
+def doctor_availability(request):
+    if request.method == 'POST':
+        form = DoctorAvailabilityForm(request.POST)
+        if form.is_valid():
+            date = form.cleaned_data['date']
+            start_time = form.cleaned_data['start_time']
+            end_time = form.cleaned_data['end_time']
+            doctor = request.user.doctor
+
+            current_time = datetime.combine(date, start_time)
+            end_time = datetime.combine(date, end_time)
+
+            while current_time + timedelta(minutes=45) <= end_time:
+                timeslot = TimeSlot(
+                    doctor=doctor,
+                    date=date,
+                    start_time=current_time.time(),
+                    end_time=(current_time + timedelta(minutes=45)).time(),
+                    label=f"{current_time.time()} - {(current_time + timedelta(minutes=45)).time()}"
+                )
+                timeslot.save()
+                logger.info(f"Created timeslot: {timeslot}")
+                current_time += timedelta(minutes=45)
+
+            return redirect('doctor_dashboard')
+        else:
+            logger.error(f"Form is not valid: {form.errors}")
+    else:
+        form = DoctorAvailabilityForm()
+    return render(request, './doctor_availability.html', {'form': form})
+

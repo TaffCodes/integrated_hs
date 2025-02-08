@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Make an Appointment</title>
+    <title>Doctor Availability</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -46,7 +46,7 @@
             font-weight: bold;
         }
 
-        .form-container input, .form-container textarea, .form-container select {
+        .form-container input {
             margin-bottom: 15px;
             padding: 10px;
             border: 1px solid #ccc;
@@ -75,11 +75,11 @@
 </head>
 <body>
     <header>
-        <h1>Make an Appointment</h1>
+        <h1>Doctor Availability</h1>
     </header>
     <main class="content">
         <div class="form-container">
-            <h2>Appointment Form</h2>
+            <h2>Set Your Availability</h2>
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
@@ -99,29 +99,6 @@
                 {% endif %}
                 <button type="submit">Submit</button>
             </form>
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-  $(document).ready(function(){
-    // When the doctor select field changes
-    $('#id_doctor').change(function(){
-        var doctorId = $(this).val();
-        $.ajax({
-            url: "{% url 'get_timeslots' %}",
-            data: {
-                'doctor_id': doctorId
-            },
-            dataType: 'json',
-            success: function(data) {
-                var options = '<option value="">---------</option>';
-                $.each(data.time_slots, function(index, time_slot) {
-                    options += '<option value="' + time_slot.id + '">' + time_slot.label + '</option>';
-                });
-                $('#id_time_slot').html(options);
-            }
-        });
-    });
-  });
-</script>
         </div>
     </main>
 </body>

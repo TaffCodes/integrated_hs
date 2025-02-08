@@ -65,20 +65,97 @@
         .content {
             padding: 20px;
         }
+
+        .column-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .column {
+            width: 48%;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .appointment {
+            background-color: #e7e7e7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .form-container {
+            margin-top: 20px;
+        }
+
+        .time-slots {
+            margin-top: 20px;
+        }
+
+        .time-slot {
+            background-color: #e7e7e7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Patient Dashboard</h1>
-        <form method="post" action="{% url 'user_logout' %}">
-            {% csrf_token %}
-            <button type="submit" class="logout-button">Logout</button>
-        </form>
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'user_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-button">Logout</button>
+            </form>
+        {% endif %}
     </header>
     <main class="content">
         <h1>Welcome, {{ user.username }}</h1>
         <p>This is your dashboard.</p>
         <a href="{% url 'make_appointment' %}">Make an Appointment</a>
+
+        <div class="column-container">
+            <div class="column">
+                <div class="appointments">
+                    <h2>Your Appointments</h2>
+                    {% for appointment in appointments %}
+                        <div class="appointment">
+                            <p><strong>Date:</strong> {{ appointment.date }}</p>
+                            <p><strong>Doctor:</strong> Dr. {{ appointment.doctor.user.username }}</p>
+                            <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+                            <p><strong>Status:</strong> {{ appointment.status }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="form-container">
+                    <h2>Check Doctor Availability</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit">Check Availability</button>
+                    </form>
+                </div>
+
+                {% if available_time_slots %}
+                    <div class="time-slots">
+                        <h2>Available Time Slots</h2>
+                        {% for time_slot in available_time_slots %}
+                            <div class="time-slot">
+                                <p><strong>Date:</strong> {{ time_slot.date }}</p>
+                                <p><strong>Start Time:</strong> {{ time_slot.start_time }}</p>
+                                <p><strong>End Time:</strong> {{ time_slot.end_time }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </main>
     <footer>
         <p>&copy; 2025 Hospital Integrated System</p>

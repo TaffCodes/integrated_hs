@@ -4,12 +4,6 @@
 <html>
 <head>
     <title>Doctor Dashboard</title>
-    {% if user.is_authenticated %}
-            <form method="post" action="{% url 'user_logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="logout-button">Logout</button>
-            </form>
-        {% endif %}
     <style>
         .logout-button {
             position: absolute;
@@ -26,6 +20,7 @@
         .logout-button:hover {
             background-color: #d32f2f;
         }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -39,6 +34,7 @@
             color: white;
             padding: 10px 0;
             text-align: center;
+            position: relative;
         }
 
         nav ul {
@@ -60,7 +56,7 @@
             background-color: #4CAF50;
             color: white;
             text-align: center;
-            padding: 10px 0;
+            padding: 0px 0;
             position: fixed;
             width: 100%;
             bottom: 0;
@@ -69,15 +65,99 @@
         .content {
             padding: 20px;
         }
+
+        .availability-button {
+            display: block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .availability-button:hover {
+            background-color: #45a049;
+        }
+
+        .time-slots {
+            margin-top: 20px;
+        }
+
+        .time-slot {
+            background-color: #e7e7e7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .appointments {
+            margin-top: 20px;
+        }
+
+        .appointment {
+            background-color: #e7e7e7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Doctor Dashboard</h1>
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'user_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-button">Logout</button>
+            </form>
+        {% endif %}
     </header>
     <main class="content">
         <h1>Welcome, Dr. {{ user.username }}</h1>
         <p>This is your dashboard.</p>
+        <a href="{% url 'doctor_availability' %}" class="availability-button">Set Availability</a>
+
+        <div class="appointments">
+            <h2>Appointments and Available Time Slots for Selected Date</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Filter</button>
+            </form>
+
+            {% if time_slots %}
+                <div class="time-slots">
+                    <h2>Your Available Time Slots for {{ form.cleaned_data.date }}</h2>
+                    {% for time_slot in time_slots %}
+                        <div class="time-slot">
+                            <p><strong>Date:</strong> {{ time_slot.date }}</p>
+                            <p><strong>Start Time:</strong> {{ time_slot.start_time }}</p>
+                            <p><strong>End Time:</strong> {{ time_slot.end_time }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No available time slots for the selected date.</p>
+            {% endif %}
+
+            {% if appointments %}
+                <div class="appointments">
+                    <h2>Appointments for {{ form.cleaned_data.date }}</h2>
+                    {% for appointment in appointments %}
+                        <div class="appointment">
+                            <p><strong>Patient:</strong> {{ appointment.patient.user.username }}</p>
+                            <p><strong>Date:</strong> {{ appointment.date }}</p>
+                            <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+                            <p><strong>Status:</strong> {{ appointment.status }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No appointments for the selected date.</p>
+            {% endif %}
+        </div>
     </main>
     <footer>
         <p>&copy; 2025 Hospital Integrated System</p>

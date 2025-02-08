@@ -16,4 +16,7 @@ urlpatterns = [
     path('nurse_dashboard/', views.nurse_dashboard, name='nurse_dashboard'),
     path('user_logout/', views.user_logout, name='user_logout'),
     path('make_appointment/', views.make_appointment, name='make_appointment'),
+    path('doctor_availability/', views.doctor_availability, name='doctor_availability'),
+    path('ajax/get_timeslots/', views.get_available_timeslots, name='get_timeslots'),
+    
 ]

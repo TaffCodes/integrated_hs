@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from datetime import timedelta
 
 class User(AbstractUser):
     groups = models.ManyToManyField(
@@ -28,7 +29,7 @@ class Patient(models.Model):
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialization = models.CharField(max_length=100)
-    availability = models.JSONField()  # Example: {"Monday": "9-5", "Tuesday": "9-5"}
+    availability = models.JSONField()  # Example: {"Monday": ["09:00", "17:00"], "Tuesday": ["09:00", "17:00"]}
 
     def __str__(self):
         return self.user.username
@@ -46,10 +47,24 @@ class Receptionist(models.Model):
     def __str__(self):
         return self.user.username
 
+class TimeSlot(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    label = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.doctor.user.username} - {self.date} {self.start_time} to {self.end_time}"
+
+    def get_label(self):
+        return f"{self.date} {self.start_time} - {self.end_time}"
+
 class Appointment(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     date = models.DateTimeField()
+    duration = models.DurationField(default=timedelta(minutes=45))
     status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Denied', 'Denied')])
     reason = models.TextField()
 
@@ -62,6 +77,7 @@ class Diagnosis(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     diagnosis_text = models.TextField()
     inpatient_advice = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f"Diagnosis {self.id} for {self.patient.user.username}"
@@ -95,10 +111,4 @@ class Comment(models.Model):
 
 class Admission(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    date_admitted = models.DateTimeField()
-    date_discharged = models.DateTimeField(null=True, blank=True)
-    room_number = models.CharField(max_length=10)
-    active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"Admission {self.id} for {self.patient.user.username}"
+    date_admitted = models.DateTimeField(auto_now_add=True)

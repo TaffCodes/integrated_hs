@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Patient, Doctor, Nurse, Receptionist, Appointment, Diagnosis
+from .models import User, Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot
 from django.core.exceptions import ValidationError
-from datetime import datetime
-
+from datetime import datetime, timedelta
+from django.utils.timezone import is_aware, make_naive
+from . import views
 class PatientRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     address = forms.CharField(widget=forms.Textarea)
@@ -38,16 +39,44 @@ class ReceptionistLoginForm(AuthenticationForm):
     username = forms.CharField(max_length=254, widget=forms.TextInput(attrs={'autofocus': True}))
     password = forms.CharField(label=("Password"), strip=False, widget=forms.PasswordInput)
 
+
+
+
+# Form for creating or updating an appointment
 class AppointmentForm(forms.ModelForm):
+    time_slot = forms.ModelChoiceField(queryset=TimeSlot.objects.none(), required=True, label="Available Time Slots")
+
     class Meta:
         model = Appointment
-        fields = ['doctor', 'date', 'reason']
-        widgets = {
-            'date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-        }
+        fields = ['doctor', 'time_slot', 'reason']
 
-    def clean_date(self):
-        date = self.cleaned_data.get('date')
-        if date < datetime.now():
-            raise ValidationError("The date cannot be in the past.")
-        return date
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['doctor'].queryset = Doctor.objects.all()
+        self.fields['doctor'].label = "Select Doctor"
+        if 'doctor' in self.data:
+            try:
+                doctor_id = int(self.data.get('doctor'))
+                self.fields['time_slot'].queryset = TimeSlot.objects.filter(doctor_id=doctor_id).order_by('date', 'start_time')
+                self.fields['time_slot'].label_from_instance = lambda obj: obj.get_label()
+            except (ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty queryset
+        elif self.instance.pk:
+            self.fields['time_slot'].queryset = TimeSlot.objects.filter(doctor=self.instance.doctor).order_by('date', 'start_time')
+            self.fields['time_slot'].label_from_instance = lambda obj: obj.get_label()
+
+class DoctorAvailabilityForm(forms.ModelForm):
+    class Meta:
+        model = TimeSlot
+        fields = ['date', 'start_time', 'end_time']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['date'].widget = forms.DateInput(attrs={'type': 'date'})
+        self.fields['start_time'].widget = forms.TimeInput(attrs={'type': 'time'})
+        self.fields['end_time'].widget = forms.TimeInput(attrs={'type': 'time'})
+
+
+
+class DoctorDashboardForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=True, label="Select Date")
