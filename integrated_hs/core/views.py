@@ -247,6 +247,10 @@ def doctor_dashboard(request):
 
     return render(request, './doctor_dashboard.html', {'form': form, 'time_slots': time_slots, 'appointments': appointments})
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @login_required
 def create_diagnosis(request, appointment_id):
     appointment = Appointment.objects.get(id=appointment_id)
@@ -267,11 +271,32 @@ def create_diagnosis(request, appointment_id):
                 frequency=diagnosis_form.cleaned_data['frequency']
             )
 
+            # Calculate the invoice amount
+            flat_rate = 1500
+            admission_charge = 0
+            if diagnosis.inpatient_advice and diagnosis.admission_date and diagnosis.discharge_date:
+                days_admitted = (diagnosis.discharge_date - diagnosis.admission_date).days
+                admission_charge = days_admitted * 2000
+
+            total_amount = flat_rate + admission_charge
+
+            # Create an Invoice object
+            invoice = Invoice.objects.create(
+                patient=diagnosis.patient,
+                appointment=appointment,  # Include the appointment field
+                amount=total_amount,
+                details=f"Appointment charge: {flat_rate} KES. Admission charge: {admission_charge} KES."
+            )
+            logger.info(f"Invoice created: {invoice}")
+
             return redirect('doctor_dashboard')
     else:
         diagnosis_form = DiagnosisForm(doctor=request.user.doctor)
 
     return render(request, './create_diagnosis.html', {'appointment': appointment, 'diagnosis_form': diagnosis_form})
+
+
+
 @login_required
 def doctor_diagnoses(request):
     doctor = request.user.doctor
@@ -289,5 +314,5 @@ def appointment_details(request, appointment_id):
     appointment = Appointment.objects.get(id=appointment_id, patient=request.user.patient)
     diagnosis = Diagnosis.objects.filter(appointment=appointment).first()
     prescription = Prescription.objects.filter(diagnosis=diagnosis).first() if diagnosis else None
-    invoice = Invoice.objects.filter(patient=appointment.patient, date_issued__date=appointment.date.date()).first()
+    invoice = Invoice.objects.filter(appointment=appointment).first()  # Fetch invoice by appointment
     return render(request, 'appointment_details.html', {'appointment': appointment, 'diagnosis': diagnosis, 'prescription': prescription, 'invoice': invoice})

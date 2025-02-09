@@ -88,11 +88,12 @@ class DiagnosisForm(forms.ModelForm):
     medication = forms.CharField(max_length=100, required=True, label="Medication")
     dosage = forms.CharField(max_length=100, required=True, label="Dosage")
     frequency = forms.CharField(max_length=100, required=True, label="Frequency")
-    
+    admission_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False, label="Admission Date")
+    discharge_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False, label="Discharge Date")
 
     class Meta:
         model = Diagnosis
-        fields = ['appointment', 'diagnosis_text', 'inpatient_advice', 'medication', 'dosage', 'frequency']
+        fields = ['appointment', 'diagnosis_text', 'inpatient_advice', 'admission_date', 'discharge_date', 'medication', 'dosage', 'frequency']
 
     def __init__(self, *args, **kwargs):
         doctor = kwargs.pop('doctor', None)

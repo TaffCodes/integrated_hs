@@ -77,7 +77,8 @@ class Diagnosis(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     diagnosis_text = models.TextField()
     inpatient_advice = models.BooleanField(default=False)
-
+    admission_date = models.DateField(null=True, blank=True)
+    discharge_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"Diagnosis {self.id} for {self.patient.user.username}"
@@ -93,6 +94,7 @@ class Prescription(models.Model):
 
 class Invoice(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date_issued = models.DateTimeField(auto_now_add=True)
     details = models.TextField()
