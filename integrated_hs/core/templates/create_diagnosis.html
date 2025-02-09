@@ -67,6 +67,39 @@
         .diagnosis-form {
             margin-top: 20px;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #45a049;
+        }
+
+        .form-container button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -80,12 +113,18 @@
         {% endif %}
     </header>
     <main class="content">
+        <div class="nav-buttons">
+            <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
+            <a href="{% url 'doctor_diagnoses' %}">View Diagnoses</a>
+        </div>
         <h1>Create Diagnosis for Appointment with {{ appointment.patient.user.username }}</h1>
-        <form method="post">
-            {% csrf_token %}
-            {{ diagnosis_form.as_p }}
-            <button type="submit">Create Diagnosis</button>
-        </form>
+        <div class="form-container">
+            <form method="post">
+                {% csrf_token %}
+                {{ diagnosis_form.as_p }}
+                <button type="submit">Create Diagnosis</button>
+            </form>
+        </div>
     </main>
     <footer>
         <p>&copy; 2025 Hospital Integrated System</p>

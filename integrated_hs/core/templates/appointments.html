@@ -56,7 +56,7 @@
             background-color: #4CAF50;
             color: white;
             text-align: center;
-            padding: 10px 0;
+            padding: 10px;
             width: 100%;
             bottom: 0;
         }
@@ -75,6 +75,39 @@
         .diagnosis-form {
             margin-top: 20px;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #45a049;
+        }
+
+        .create-diagnosis-button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .create-diagnosis-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -88,6 +121,11 @@
         {% endif %}
     </header>
     <main class="content">
+        <div class="nav-buttons">
+            <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
+            <a href="{% url 'doctor_availability' %}">Set Availability</a>
+            <a href="{% url 'doctor_diagnoses' %}">View Diagnoses</a>
+        </div>
         <h1>Appointments for {{ date }}</h1>
         <div class="appointments">
             {% for appointment in appointments %}
@@ -96,7 +134,7 @@
                     <p><strong>Date:</strong> {{ appointment.date }}</p>
                     <p><strong>Reason:</strong> {{ appointment.reason }}</p>
                     <p><strong>Status:</strong> {{ appointment.status }}</p>
-                    <a href="{% url 'create_diagnosis' appointment.id %}">Create Diagnosis</a>
+                    <a href="{% url 'create_diagnosis' appointment.id %}" class="create-diagnosis-button">Create Diagnosis</a>
                 </div>
             {% endfor %}
         </div>

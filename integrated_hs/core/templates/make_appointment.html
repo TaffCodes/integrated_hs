@@ -71,6 +71,25 @@
             color: red;
             margin-bottom: 15px;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -78,6 +97,10 @@
         <h1>Make an Appointment</h1>
     </header>
     <main class="content">
+        <div class="nav-buttons">
+            <a href="{% url 'patient_dashboard' %}">Dashboard</a>
+            <a href="{% url 'patient_appointments' %}">My Appointments</a>
+        </div>
         <div class="form-container">
             <h2>Appointment Form</h2>
             <form method="post">
@@ -100,28 +123,28 @@
                 <button type="submit">Submit</button>
             </form>
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-  $(document).ready(function(){
-    // When the doctor select field changes
-    $('#id_doctor').change(function(){
-        var doctorId = $(this).val();
-        $.ajax({
-            url: "{% url 'get_timeslots' %}",
-            data: {
-                'doctor_id': doctorId
-            },
-            dataType: 'json',
-            success: function(data) {
-                var options = '<option value="">---------</option>';
-                $.each(data.time_slots, function(index, time_slot) {
-                    options += '<option value="' + time_slot.id + '">' + time_slot.label + '</option>';
+            <script>
+                $(document).ready(function(){
+                    // When the doctor select field changes
+                    $('#id_doctor').change(function(){
+                        var doctorId = $(this).val();
+                        $.ajax({
+                            url: "{% url 'get_timeslots' %}",
+                            data: {
+                                'doctor_id': doctorId
+                            },
+                            dataType: 'json',
+                            success: function(data) {
+                                var options = '<option value="">---------</option>';
+                                $.each(data.time_slots, function(index, time_slot) {
+                                    options += '<option value="' + time_slot.id + '">' + time_slot.label + '</option>';
+                                });
+                                $('#id_time_slot').html(options);
+                            }
+                        });
+                    });
                 });
-                $('#id_time_slot').html(options);
-            }
-        });
-    });
-  });
-</script>
+            </script>
         </div>
     </main>
 </body>

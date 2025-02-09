@@ -24,7 +24,7 @@
             background-color: #4CAF50;
             color: white;
             text-align: center;
-            padding: 0px 0;
+            padding: 10px 0;
             width: 100%;
             bottom: 0;
         }
@@ -44,6 +44,24 @@
 
         .form-container h2 {
             margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-container form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-container label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-container input {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         .form-container button {
@@ -53,9 +71,34 @@
             border: none;
             cursor: pointer;
             width: 100%;
+            border-radius: 4px;
         }
 
         .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .form-errors {
+            color: red;
+            margin-bottom: 15px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .nav-buttons a:hover {
             background-color: #45a049;
         }
     </style>
@@ -65,11 +108,28 @@
         <h1>Hospital Integrated System</h1>
     </header>
     <main class="content">
+        <div class="nav-buttons">
+            <a href="/hello">Home</a>
+        </div>
         <div class="form-container">
             <h2>Patient Registration</h2>
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
+                {% if form.errors %}
+                    <div class="form-errors">
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
                 <button type="submit">Register</button>
             </form>
         </div>

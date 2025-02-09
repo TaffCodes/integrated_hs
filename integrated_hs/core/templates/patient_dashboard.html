@@ -99,6 +99,25 @@
             margin-bottom: 10px;
             border-radius: 4px;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -112,9 +131,12 @@
         {% endif %}
     </header>
     <main class="content">
+        <div class="nav-buttons">
+            <a href="{% url 'patient_appointments' %}">My Appointments</a>
+            <a href="{% url 'make_appointment' %}">Make Appointment</a>
+        </div>
         <h1>Welcome, {{ user.username }}</h1>
         <p>This is your dashboard.</p>
-        <a href="{% url 'make_appointment' %}">Make an Appointment</a>
 
         <div class="column-container">
             <div class="column">
@@ -131,29 +153,7 @@
                 </div>
             </div>
 
-            <div class="column">
-                <div class="form-container">
-                    <h2>Check Doctor Availability</h2>
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit">Check Availability</button>
-                    </form>
-                </div>
-
-                {% if available_time_slots %}
-                    <div class="time-slots">
-                        <h2>Available Time Slots</h2>
-                        {% for time_slot in available_time_slots %}
-                            <div class="time-slot">
-                                <p><strong>Date:</strong> {{ time_slot.date }}</p>
-                                <p><strong>Start Time:</strong> {{ time_slot.start_time }}</p>
-                                <p><strong>End Time:</strong> {{ time_slot.end_time }}</p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
+            
         </div>
     </main>
     <footer>

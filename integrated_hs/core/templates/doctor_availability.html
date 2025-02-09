@@ -71,6 +71,25 @@
             color: red;
             margin-bottom: 15px;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -78,6 +97,10 @@
         <h1>Doctor Availability</h1>
     </header>
     <main class="content">
+        <div class="nav-buttons">
+            <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
+            <a href="{% url 'doctor_diagnoses' %}">View Diagnoses</a>
+        </div>
         <div class="form-container">
             <h2>Set Your Availability</h2>
             <form method="post">
