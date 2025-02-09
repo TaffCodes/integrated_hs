@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm, AppointmentForm, DoctorAvailabilityForm, DoctorDashboardForm, DiagnosisForm
-from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis
+from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis, Invoice, Prescription
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from django.utils.timezone import is_naive, make_naive
@@ -258,14 +258,36 @@ def create_diagnosis(request, appointment_id):
             diagnosis.patient = appointment.patient
             diagnosis.appointment = appointment
             diagnosis.save()
+
+            # Create a Prescription object
+            Prescription.objects.create(
+                diagnosis=diagnosis,
+                medication=diagnosis_form.cleaned_data['medication'],
+                dosage=diagnosis_form.cleaned_data['dosage'],
+                frequency=diagnosis_form.cleaned_data['frequency']
+            )
+
             return redirect('doctor_dashboard')
     else:
         diagnosis_form = DiagnosisForm(doctor=request.user.doctor)
 
     return render(request, './create_diagnosis.html', {'appointment': appointment, 'diagnosis_form': diagnosis_form})
-
 @login_required
 def doctor_diagnoses(request):
     doctor = request.user.doctor
     diagnoses = Diagnosis.objects.filter(doctor=doctor).order_by('appointment__date')
     return render(request, './doctor_diagnoses.html', {'diagnoses': diagnoses})
+
+@login_required
+def patient_appointments(request):
+    patient = request.user.patient
+    appointments = Appointment.objects.filter(patient=patient).order_by('date')
+    return render(request, 'patient_appointments.html', {'appointments': appointments})
+
+@login_required
+def appointment_details(request, appointment_id):
+    appointment = Appointment.objects.get(id=appointment_id, patient=request.user.patient)
+    diagnosis = Diagnosis.objects.filter(appointment=appointment).first()
+    prescription = Prescription.objects.filter(diagnosis=diagnosis).first() if diagnosis else None
+    invoice = Invoice.objects.filter(patient=appointment.patient, date_issued__date=appointment.date.date()).first()
+    return render(request, 'appointment_details.html', {'appointment': appointment, 'diagnosis': diagnosis, 'prescription': prescription, 'invoice': invoice})

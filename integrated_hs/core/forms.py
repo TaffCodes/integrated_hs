@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis
+from .models import User, Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis, Prescription
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from django.utils.timezone import is_aware, make_naive
@@ -85,10 +85,14 @@ class DoctorDashboardForm(forms.Form):
 
 class DiagnosisForm(forms.ModelForm):
     appointment = forms.ModelChoiceField(queryset=Appointment.objects.none(), required=True, label="Select Appointment")
+    medication = forms.CharField(max_length=100, required=True, label="Medication")
+    dosage = forms.CharField(max_length=100, required=True, label="Dosage")
+    frequency = forms.CharField(max_length=100, required=True, label="Frequency")
+    
 
     class Meta:
         model = Diagnosis
-        fields = ['appointment', 'diagnosis_text', 'inpatient_advice']
+        fields = ['appointment', 'diagnosis_text', 'inpatient_advice', 'medication', 'dosage', 'frequency']
 
     def __init__(self, *args, **kwargs):
         doctor = kwargs.pop('doctor', None)

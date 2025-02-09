@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Diagnosis</title>
+    <title>My Appointments</title>
     <style>
         .logout-button {
             position: absolute;
@@ -64,14 +64,17 @@
             padding: 20px;
         }
 
-        .diagnosis-form {
-            margin-top: 20px;
+        .appointment-card {
+            background-color: #e7e7e7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Create Diagnosis</h1>
+        <h1>My Appointments</h1>
         {% if user.is_authenticated %}
             <form method="post" action="{% url 'user_logout' %}">
                 {% csrf_token %}
@@ -80,12 +83,18 @@
         {% endif %}
     </header>
     <main class="content">
-        <h1>Create Diagnosis for Appointment with {{ appointment.patient.user.username }}</h1>
-        <form method="post">
-            {% csrf_token %}
-            {{ diagnosis_form.as_p }}
-            <button type="submit">Create Diagnosis</button>
-        </form>
+        <h1>My Appointments</h1>
+        <div class="appointments">
+            {% for appointment in appointments %}
+                <div class="appointment-card">
+                    <p><strong>Doctor:</strong> {{ appointment.doctor.user.username }}</p>
+                    <p><strong>Date:</strong> {{ appointment.date }}</p>
+                    <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+                    <p><strong>Status:</strong> {{ appointment.status }}</p>
+                    <a href="{% url 'appointment_details' appointment.id %}">View Details</a>
+                </div>
+            {% endfor %}
+        </div>
     </main>
     <footer>
         <p>&copy; 2025 Hospital Integrated System</p>

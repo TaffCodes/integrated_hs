@@ -1,0 +1,127 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Appointment Details</title>
+    <style>
+        .logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 10px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+
+        footer {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 5px 0; /* Reduced padding */
+            width: 100%;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .details-card {
+            background-color: #e7e7e7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Appointment Details</h1>
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'user_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-button">Logout</button>
+            </form>
+        {% endif %}
+    </header>
+    <main class="content">
+        <h1>Appointment Details</h1>
+        <div class="details-card">
+            <p><strong>Doctor:</strong> {{ appointment.doctor.user.username }}</p>
+            <p><strong>Date:</strong> {{ appointment.date }}</p>
+            <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+            <p><strong>Status:</strong> {{ appointment.status }}</p>
+        </div>
+        {% if diagnosis %}
+            <div class="details-card">
+                <h2>Diagnosis</h2>
+                <p><strong>Diagnosis:</strong> {{ diagnosis.diagnosis_text }}</p>
+                <p><strong>Inpatient Advice:</strong> {{ diagnosis.inpatient_advice }}</p>
+            </div>
+            {% if prescription %}
+                <div class="details-card">
+                    <h2>Prescription</h2>
+                    <p><strong>Medication:</strong> {{ prescription.medication }}</p>
+                    <p><strong>Dosage:</strong> {{ prescription.dosage }}</p>
+                    <p><strong>Frequency:</strong> {{ prescription.frequency }}</p>
+                </div>
+            {% else %}
+                <p>No prescription available for this diagnosis.</p>
+            {% endif %}
+        {% else %}
+            <p>No diagnosis available for this appointment.</p>
+        {% endif %}
+        {% if invoice %}
+            <div class="details-card">
+                <h2>Invoice</h2>
+                <p><strong>Amount:</strong> {{ invoice.amount }}</p>
+                <p><strong>Date Issued:</strong> {{ invoice.date_issued }}</p>
+                <p><strong>Details:</strong> {{ invoice.details }}</p>
+            </div>
+        {% else %}
+            <p>No invoice available for this appointment.</p>
+        {% endif %}
+    </main>
+    <footer>
+        <p>&copy; 2025 Hospital Integrated System</p>
+    </footer>
+</body>
+</html>
