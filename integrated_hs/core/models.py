@@ -114,3 +114,13 @@ class Comment(models.Model):
 class Admission(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date_admitted = models.DateTimeField(auto_now_add=True)
+
+class Insight(models.Model):
+    diagnosis = models.TextField(help_text="The diagnosis text entered by the doctor.")
+    doctor_insights = models.TextField(help_text="Recommendations for the doctor based on the diagnosis.")
+    patient_insights = models.TextField(help_text="Recommendations for the patient based on the diagnosis.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        # Return a truncated version of the diagnosis as a string representation.
+        return f"Insight for: {self.diagnosis[:50]}..."
