@@ -5,7 +5,7 @@
 # logger = logging.getLogger(__name__)
 
 # # Set your Google Gemini API key and endpoint
-# API_KEY = 'AIzaSyCrRvUMhyOdIfD0ZNMN2D2D2R4Qv31S-vs'
+# API_KEY = ''
 # API_ENDPOINT = 'https://api.google.com/gemini/v1/insights'
 
 # def generate_insights(diagnosis_text, diagnosis_id):
