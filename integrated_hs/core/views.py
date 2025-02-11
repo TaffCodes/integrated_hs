@@ -3,10 +3,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .forms import PatientRegistrationForm, PatientLoginForm, DoctorLoginForm, NurseLoginForm, ReceptionistLoginForm, AppointmentForm, DoctorAvailabilityForm, DoctorDashboardForm, DiagnosisForm
-from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis, Invoice, Prescription
+from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis, Invoice, Prescription, Insight
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from django.utils.timezone import is_naive, make_naive
+from .nlp_utils import generate_insights
+import spacy
+nlp = spacy.load("en_core_web_sm")
 
 
 logger = logging.getLogger(__name__)
@@ -251,6 +254,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @login_required
 def create_diagnosis(request, appointment_id):
     appointment = Appointment.objects.get(id=appointment_id)
@@ -262,6 +266,7 @@ def create_diagnosis(request, appointment_id):
             diagnosis.patient = appointment.patient
             diagnosis.appointment = appointment
             diagnosis.save()
+            logger.info(f"Diagnosis saved: {diagnosis}")
 
             # Create a Prescription object
             Prescription.objects.create(
@@ -270,6 +275,7 @@ def create_diagnosis(request, appointment_id):
                 dosage=diagnosis_form.cleaned_data['dosage'],
                 frequency=diagnosis_form.cleaned_data['frequency']
             )
+            logger.info("Prescription created")
 
             # Calculate the invoice amount
             flat_rate = 1500
@@ -289,12 +295,26 @@ def create_diagnosis(request, appointment_id):
             )
             logger.info(f"Invoice created: {invoice}")
 
-            return redirect('doctor_dashboard')
+            # Generate insights using NLP
+            insights = generate_insights(diagnosis.diagnosis_text, diagnosis.id)
+            doctor_actions = insights["doctor_actions"]
+            patient_advice = insights["patient_advice"]
+
+            logger.info(f"Doctor actions: {doctor_actions}")
+            logger.info(f"Patient advice: {patient_advice}")
+
+            return render(request, './diagnosis_insights.html', {
+                'appointment': appointment,
+                'diagnosis': diagnosis,
+                'doctor_actions': doctor_actions,
+                'patient_advice': patient_advice
+            })
+        else:
+            logger.error(f"Form is not valid: {diagnosis_form.errors}")
     else:
         diagnosis_form = DiagnosisForm(doctor=request.user.doctor)
 
     return render(request, './create_diagnosis.html', {'appointment': appointment, 'diagnosis_form': diagnosis_form})
-
 
 
 @login_required

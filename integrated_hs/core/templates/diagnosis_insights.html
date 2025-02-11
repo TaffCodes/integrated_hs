@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnosis Insights</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .insights {
+            margin-top: 20px;
+        }
+
+        .insights h2 {
+            color: #4CAF50;
+        }
+
+        .insights ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .insights ul li {
+            background-color: #e7e7e7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Diagnosis Insights</h1>
+    </header>
+    <main class="content">
+        <h2>Doctor Actions</h2>
+        <div class="insights">
+            <ul>
+                {% for action in doctor_actions %}
+                    <li>{{ action }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <h2>Patient Advice</h2>
+        <div class="insights">
+            <ul>
+                {% for advice in patient_advice %}
+                    <li>{{ advice }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </main>
+</body>
+</html>
