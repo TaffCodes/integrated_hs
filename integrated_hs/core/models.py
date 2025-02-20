@@ -29,7 +29,6 @@ class Patient(models.Model):
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialization = models.CharField(max_length=100)
-    availability = models.JSONField()  # Example: {"Monday": ["09:00", "17:00"], "Tuesday": ["09:00", "17:00"]}
 
     def __str__(self):
         return self.user.username
