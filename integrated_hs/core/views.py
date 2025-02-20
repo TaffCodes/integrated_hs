@@ -7,9 +7,8 @@ from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot,
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from django.utils.timezone import is_naive, make_naive
-from .nlp_utils import generate_insights
-import spacy
-nlp = spacy.load("en_core_web_sm")
+# from .nlp_utils import generate_insights
+
 
 
 logger = logging.getLogger(__name__)
@@ -295,20 +294,20 @@ def create_diagnosis(request, appointment_id):
             )
             logger.info(f"Invoice created: {invoice}")
 
-            # Generate insights using NLP
-            insights = generate_insights(diagnosis.diagnosis_text, diagnosis.id)
-            doctor_actions = insights["doctor_actions"]
-            patient_advice = insights["patient_advice"]
+    #         # Generate insights using NLP
+    #         insights = generate_insights(diagnosis.diagnosis_text, diagnosis.id)
+    #         doctor_actions = insights["doctor_actions"]
+    #         patient_advice = insights["patient_advice"]
 
-            logger.info(f"Doctor actions: {doctor_actions}")
-            logger.info(f"Patient advice: {patient_advice}")
+    #         logger.info(f"Doctor actions: {doctor_actions}")
+    #         logger.info(f"Patient advice: {patient_advice}")
 
-            return render(request, './diagnosis_insights.html', {
-                'appointment': appointment,
-                'diagnosis': diagnosis,
-                'doctor_actions': doctor_actions,
-                'patient_advice': patient_advice
-            })
+    #         return render(request, './diagnosis_insights.html', {
+    #             'appointment': appointment,
+    #             'diagnosis': diagnosis,
+    #             'doctor_actions': doctor_actions,
+    #             'patient_advice': patient_advice
+    #         })
         else:
             logger.error(f"Form is not valid: {diagnosis_form.errors}")
     else:
