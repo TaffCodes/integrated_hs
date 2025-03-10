@@ -23,5 +23,6 @@ urlpatterns = [
     path('doctor_diagnoses/', views.doctor_diagnoses, name='doctor_diagnoses'),
     path('patient_appointments/', views.patient_appointments, name='patient_appointments'),
     path('appointment_details/<int:appointment_id>/', views.appointment_details, name='appointment_details'),
+    path('diagnosis_insights/<int:diagnosis_id>/', views.diagnosis_insights, name='diagnosis_insights'),
     
 ]

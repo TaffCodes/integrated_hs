@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Appointment Details</title>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -9,24 +11,55 @@
             color: #333;
             margin: 0;
             padding: 0;
+            line-height: 1.5;
         }
 
         header {
-            background-color: #4CAF50;
+            background-color:#4caf50;
             color: white;
-            padding: 10px 0;
+            padding: 15px 0;
             text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer {
+            background-color: #4caf50;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: 30px;
         }
 
         .content {
             padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
+        /* Updated card styles to match insights */
         .details-card {
-            background-color: #e7e7e7;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .details-card h2 {
+            color: #4CAF50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .details-card p {
+            margin: 10px 0;
+        }
+
+        .details-card strong {
+            color: #555;
         }
 
         .nav-buttons {
@@ -42,10 +75,60 @@
             text-decoration: none;
             border-radius: 4px;
             margin-left: 10px;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .nav-buttons a:hover {
             background-color: #45a049;
+        }
+
+        .insights-list {
+            margin-top: 15px;
+        }
+        
+        .insight-item {
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            background-color: #f0f7ed;
+            border-left: 4px solid #4CAF50;
+            border-radius: 3px;
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+        
+        .insight-item i {
+            margin-right: 12px;
+            color: #4CAF50;
+            font-size: 18px;
+            margin-top: 3px;
+        }
+        
+        .advice-text {
+            flex: 1;
+        }
+        
+        /* Add icons to each section */
+        .icon-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .icon-header i {
+            font-size: 22px;
+            margin-right: 10px;
+            color: #4CAF50;
+        }
+        
+        .no-data {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            color: #777;
+            text-align: center;
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -60,6 +143,10 @@
             <a href="{% url 'make_appointment' %}">Make Appointment</a>
         </div>
         <div class="details-card">
+            <div class="icon-header">
+                <i class="fas fa-calendar-check"></i>
+                <h2>Appointment Information</h2>
+            </div>
             <p><strong>Doctor:</strong> {{ appointment.doctor.user.username }}</p>
             <p><strong>Date:</strong> {{ appointment.date }}</p>
             <p><strong>Reason:</strong> {{ appointment.reason }}</p>
@@ -67,32 +154,63 @@
         </div>
         {% if diagnosis %}
             <div class="details-card">
-                <h2>Diagnosis</h2>
+                <div class="icon-header">
+                    <i class="fas fa-stethoscope"></i>
+                    <h2>Diagnosis</h2>
+                </div>
                 <p><strong>Diagnosis:</strong> {{ diagnosis.diagnosis_text }}</p>
                 <p><strong>Inpatient Advice:</strong> {{ diagnosis.inpatient_advice }}</p>
             </div>
             {% if prescription %}
                 <div class="details-card">
-                    <h2>Prescription</h2>
+                    <div class="icon-header">
+                        <i class="fas fa-prescription-bottle-alt"></i>
+                        <h2>Prescription</h2>
+                    </div>
                     <p><strong>Medication:</strong> {{ prescription.medication }}</p>
                     <p><strong>Dosage:</strong> {{ prescription.dosage }}</p>
                     <p><strong>Frequency:</strong> {{ prescription.frequency }}</p>
                 </div>
             {% else %}
-                <p>No prescription available for this diagnosis.</p>
+                <div class="no-data">No prescription available for this diagnosis.</div>
             {% endif %}
         {% else %}
-            <p>No diagnosis available for this appointment.</p>
+            <div class="no-data">No diagnosis available for this appointment.</div>
+        {% endif %}
+        {% if insight %}
+            <div class="details-card">
+                <div class="icon-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <h2>Patient Insights</h2>
+                </div>
+                {% if insight.patient_insights %}
+                    <div class="insights-list">
+                        {% for advice in patient_advice %}
+                            <div class="insight-item">
+                                <i class="fas fa-info-circle"></i> 
+                                <span class="advice-text">{{ advice }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data">No specific patient advice available.</div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="no-data">No insights available for this appointment.</div>
         {% endif %}
         {% if invoice %}
             <div class="details-card">
-                <h2>Invoice</h2>
+                <div class="icon-header">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <h2>Invoice</h2>
+                </div>
                 <p><strong>Amount:</strong> {{ invoice.amount }} KES</p>
                 <p><strong>Date Issued:</strong> {{ invoice.date_issued }}</p>
                 <p><strong>Details:</strong> {{ invoice.details }}</p>
             </div>
         {% else %}
-            <p>No invoice available for this appointment.</p>
+            <div class="no-data">No invoice available for this appointment.</div>
         {% endif %}
     </main>
     <footer>

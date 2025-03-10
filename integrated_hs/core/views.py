@@ -7,7 +7,7 @@ from .models import Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot,
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from django.utils.timezone import is_naive, make_naive
-# from .nlp_utils import generate_insights
+from .predict import generate_insights
 
 
 
@@ -288,33 +288,36 @@ def create_diagnosis(request, appointment_id):
             # Create an Invoice object
             invoice = Invoice.objects.create(
                 patient=diagnosis.patient,
-                appointment=appointment,  # Include the appointment field
+                appointment=appointment,
                 amount=total_amount,
                 details=f"Appointment charge: {flat_rate} KES. Admission charge: {admission_charge} KES."
             )
             logger.info(f"Invoice created: {invoice}")
 
-    #         # Generate insights using NLP
-    #         insights = generate_insights(diagnosis.diagnosis_text, diagnosis.id)
-    #         doctor_actions = insights["doctor_actions"]
-    #         patient_advice = insights["patient_advice"]
-
-    #         logger.info(f"Doctor actions: {doctor_actions}")
-    #         logger.info(f"Patient advice: {patient_advice}")
-
-    #         return render(request, './diagnosis_insights.html', {
-    #             'appointment': appointment,
-    #             'diagnosis': diagnosis,
-    #             'doctor_actions': doctor_actions,
-    #             'patient_advice': patient_advice
-    #         })
+            # Generate insights using Groq API
+            try:
+                insights = generate_insights(diagnosis.diagnosis_text)
+                
+                # Save insights to the database
+                insight = Insight.objects.create(
+                    diagnosis=diagnosis,
+                    doctor_insights="\n".join(insights["doctor_actions"]),
+                    patient_insights="\n".join(insights["patient_advice"])
+                )
+                logger.info(f"Insights created: {insight}")
+                
+                # Redirect to the diagnosis insights page
+                return redirect('diagnosis_insights', diagnosis_id=diagnosis.id)
+            except Exception as e:
+                logger.error(f"Error generating insights: {e}")
+                return redirect('doctor_diagnoses')
+            
         else:
             logger.error(f"Form is not valid: {diagnosis_form.errors}")
     else:
         diagnosis_form = DiagnosisForm(doctor=request.user.doctor)
 
     return render(request, './create_diagnosis.html', {'appointment': appointment, 'diagnosis_form': diagnosis_form})
-
 
 @login_required
 def doctor_diagnoses(request):
@@ -333,5 +336,43 @@ def appointment_details(request, appointment_id):
     appointment = Appointment.objects.get(id=appointment_id, patient=request.user.patient)
     diagnosis = Diagnosis.objects.filter(appointment=appointment).first()
     prescription = Prescription.objects.filter(diagnosis=diagnosis).first() if diagnosis else None
-    invoice = Invoice.objects.filter(appointment=appointment).first()  # Fetch invoice by appointment
-    return render(request, 'appointment_details.html', {'appointment': appointment, 'diagnosis': diagnosis, 'prescription': prescription, 'invoice': invoice})
+    
+    # Fix: Get insights related to the diagnosis
+    insight = Insight.objects.filter(diagnosis=diagnosis).first() if diagnosis else None
+    
+    # Get patient-specific advice if insight exists
+    patient_advice = insight.patient_insights.split('\n') if insight and insight.patient_insights else []
+    
+    invoice = Invoice.objects.filter(appointment=appointment).first()
+    
+    return render(request, 'appointment_details.html', {
+        'appointment': appointment, 
+        'diagnosis': diagnosis, 
+        'prescription': prescription, 
+        'invoice': invoice,
+        'insight': insight,
+        'patient_advice': patient_advice
+    })
+
+@login_required
+def diagnosis_insights(request, diagnosis_id):
+    diagnosis = Diagnosis.objects.get(id=diagnosis_id)
+    
+    # Check if the logged-in user is the doctor who made the diagnosis
+    if request.user.doctor != diagnosis.doctor:
+        return redirect('doctor_dashboard')
+    
+    insight = Insight.objects.filter(diagnosis=diagnosis).first()
+    
+    if insight:
+        doctor_actions = insight.doctor_insights.split('\n') if insight.doctor_insights else []
+        patient_advice = insight.patient_insights.split('\n') if insight.patient_insights else []
+    else:
+        doctor_actions = []
+        patient_advice = []
+    
+    return render(request, 'diagnosis_insights.html', {
+        'diagnosis': diagnosis,
+        'doctor_actions': doctor_actions,
+        'patient_advice': patient_advice
+    })
