@@ -1,0 +1,69 @@
+<!-- core/templates/emails/diagnosis_completed.html -->
+{% extends "emails/email_base.html" %}
+
+{% block content %}
+<h2>Your Medical Diagnosis & Recommendations</h2>
+<p>Dear {{ patient_name }},</p>
+<p>Your recent appointment with {{ doctor_name }} has been completed, and we're providing you with a summary of your diagnosis and personalized recommendations.</p>
+
+<table>
+    <tr>
+        <th colspan="2">Diagnosis Information</th>
+    </tr>
+    <tr>
+        <td><strong>Diagnosis</strong></td>
+        <td>{{ diagnosis }}</td>
+    </tr>
+    {% if inpatient_advice %}
+    <tr>
+        <td><strong>Inpatient</strong></td>
+        <td>Yes, inpatient care is recommended</td>
+    </tr>
+    {% endif %}
+</table>
+
+{% if medication %}
+<h3>Prescription</h3>
+<table>
+    <tr>
+        <th>Medication</th>
+        <th>Dosage</th>
+        <th>Frequency</th>
+    </tr>
+    <tr>
+        <td>{{ medication }}</td>
+        <td>{{ dosage }}</td>
+        <td>{{ frequency }}</td>
+    </tr>
+</table>
+{% endif %}
+
+<h3>Recommendations for You</h3>
+{% if patient_advice %}
+    {% for advice in patient_advice %}
+        <div class="insight-item">{{ advice }}</div>
+    {% endfor %}
+{% else %}
+    <p>No specific recommendations at this time.</p>
+{% endif %}
+
+{% if invoice_amount %}
+<h3>Billing Information</h3>
+<table>
+    <tr>
+        <th>Amount</th>
+        <th>Details</th>
+    </tr>
+    <tr>
+        <td>KES {{ invoice_amount }}</td>
+        <td>{{ invoice_details }}</td>
+    </tr>
+</table>
+<p>Please arrange for payment at your earliest convenience. For any billing queries, contact our finance department.</p>
+{% endif %}
+
+<p>If you have any questions about your diagnosis or treatment plan, please don't hesitate to contact us.</p>
+
+<p>Wishing you a speedy recovery,<br>
+{{ doctor_name }} and the Hospital Integrated System Team</p>
+{% endblock %}

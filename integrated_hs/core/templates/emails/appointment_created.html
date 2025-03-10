@@ -1,0 +1,38 @@
+<!-- core/templates/emails/appointment_created.html -->
+{% extends "emails/email_base.html" %}
+
+{% block content %}
+<h2>Appointment Confirmation</h2>
+<p>Dear {{ patient_name }},</p>
+<p>Thank you for scheduling an appointment with our healthcare system.</p>
+
+<table>
+    <tr>
+        <th colspan="2">Appointment Details</th>
+    </tr>
+    <tr>
+        <td><strong>Doctor</strong></td>
+        <td>{{ doctor_name }}</td>
+    </tr>
+    <tr>
+        <td><strong>Date</strong></td>
+        <td>{{ date }}</td>
+    </tr>
+    <tr>
+        <td><strong>Time</strong></td>
+        <td>{{ time }}</td>
+    </tr>
+    <tr>
+        <td><strong>Reason</strong></td>
+        <td>{{ reason }}</td>
+    </tr>
+</table>
+
+<p>Please note that your appointment is currently pending approval from the doctor. You will receive another email when your appointment is approved.</p>
+
+<p>If you need to reschedule or cancel your appointment, please contact our reception as soon as possible.</p>
+
+<p>We look forward to providing you with excellent care.</p>
+
+<p>Warm regards,<br>Hospital Integrated System Team</p>
+{% endblock %}

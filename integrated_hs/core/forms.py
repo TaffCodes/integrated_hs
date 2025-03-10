@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User, Patient, Doctor, Nurse, Receptionist, Appointment, TimeSlot, Diagnosis, Prescription
@@ -41,29 +42,71 @@ class ReceptionistLoginForm(AuthenticationForm):
 
 
 
-
 # Form for creating or updating an appointment
 class AppointmentForm(forms.ModelForm):
     time_slot = forms.ModelChoiceField(queryset=TimeSlot.objects.none(), required=True, label="Available Time Slots")
 
     class Meta:
         model = Appointment
-        fields = ['doctor', 'time_slot', 'reason']
+        fields = ['doctor', 'reason']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['doctor'].queryset = Doctor.objects.all()
         self.fields['doctor'].label = "Select Doctor"
+        
+        # If a doctor is selected in POST data
         if 'doctor' in self.data:
             try:
                 doctor_id = int(self.data.get('doctor'))
-                self.fields['time_slot'].queryset = TimeSlot.objects.filter(doctor_id=doctor_id).order_by('date', 'start_time')
-                self.fields['time_slot'].label_from_instance = lambda obj: obj.get_label()
-            except (ValueError, TypeError):
-                pass  # invalid input from the client; ignore and fallback to empty queryset
+                
+                # Use the utility function to get filtered time slots
+                from .views import get_filtered_available_timeslots  # Import the utility function
+                self.fields['time_slot'].queryset = get_filtered_available_timeslots(doctor_id)
+                
+                # Set display format for time slots
+                self.fields['time_slot'].label_from_instance = lambda obj: (
+                    f"{obj.date.strftime('%a, %b %d, %Y')} at {obj.start_time.strftime('%I:%M %p')}"
+                )
+                
+            except (ValueError, TypeError) as e:
+                # Log the error for debugging
+                print(f"Error in appointment form: {e}")
+                # Invalid input from the client; fallback to empty queryset
+                pass
+                
+        # For editing existing appointments
         elif self.instance.pk:
-            self.fields['time_slot'].queryset = TimeSlot.objects.filter(doctor=self.instance.doctor).order_by('date', 'start_time')
-            self.fields['time_slot'].label_from_instance = lambda obj: obj.get_label()
+            doctor_id = self.instance.doctor_id
+            appointment_datetime = self.instance.date
+            
+            if appointment_datetime:
+                # Find the matching time slot for the existing appointment
+                time_slots = TimeSlot.objects.filter(
+                    doctor_id=doctor_id,
+                    date=appointment_datetime.date(),
+                    start_time=appointment_datetime.time()
+                )
+                self.fields['time_slot'].queryset = time_slots
+                self.fields['time_slot'].label_from_instance = lambda obj: (
+                    f"{obj.date.strftime('%a, %b %d, %Y')} at {obj.start_time.strftime('%I:%M %p')}"
+                )
+    
+    def save(self, commit=True):
+        # Override save to handle the time_slot field properly
+        appointment = super().save(commit=False)
+        
+        # Get the selected time_slot and set date/time accordingly
+        time_slot = self.cleaned_data.get('time_slot')
+        if time_slot:
+            # Combine the date and start_time from the time_slot
+            appointment.date = datetime.combine(time_slot.date, time_slot.start_time)
+            appointment.duration = timedelta(minutes=60)  # Set standard duration
+        
+        if commit:
+            appointment.save()
+        
+        return appointment
 
 class DoctorAvailabilityForm(forms.ModelForm):
     class Meta:

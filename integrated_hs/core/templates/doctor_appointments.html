@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Appointments</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        .content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a, .filter-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-buttons a:hover, .filter-button:hover {
+            background-color: #45a049;
+        }
+
+        .filter-section {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-section label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .filter-section select, .filter-section input[type="date"] {
+            padding: 6px;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        .status-denied {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-approve {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-deny {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-create-diagnosis {
+            background-color: #17a2b8;
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        footer {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Manage Appointments</h1>
+    </header>
+
+    <main class="content">
+        <div class="nav-buttons">
+            <a href="{% url 'doctor_dashboard' %}">Back to Dashboard</a>
+        </div>
+
+        <div class="filter-section">
+            <form method="get">
+                <label for="status">Status:</label>
+                <select id="status" name="status">
+                    <option value="All" {% if status_filter == 'All' %}selected{% endif %}>All</option>
+                    <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
+                    <option value="Denied" {% if status_filter == 'Denied' %}selected{% endif %}>Denied</option>
+                </select>
+
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" value="{{ date_filter }}">
+
+                <button type="submit" class="filter-button">Filter</button>
+                <a href="{% url 'doctor_appointments' %}" class="filter-button">Reset Filters</a>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Date & Time</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}</td>
+                    <td>{{ appointment.date|date:"D, M d, Y" }} at {{ appointment.date|time:"g:i A" }}</td>
+                    <td>{{ appointment.reason }}</td>
+                    <td>
+                        <span class="status-{{ appointment.status|lower }}">{{ appointment.status }}</span>
+                    </td>
+                    <td class="action-buttons">
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                            
+                            {% if appointment.status != 'Approved' %}
+                            <button type="submit" name="status" value="Approved" class="btn-approve">Approve</button>
+                            {% endif %}
+                            
+                            {% if appointment.status != 'Denied' %}
+                            <button type="submit" name="status" value="Denied" class="btn-deny">Deny</button>
+                            {% endif %}
+                            
+                            {% if appointment.status != 'Pending' %}
+                            <button type="submit" name="status" value="Pending" class="btn-reset">Reset</button>
+                            {% endif %}
+                        </form>
+                        
+                        {% if appointment.status == 'Approved' %}
+                        <a href="{% url 'create_diagnosis' appointment.id %}" class="btn-create-diagnosis">Create Diagnosis</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align:center;">No appointments found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Hospital Integrated System</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!-- core/templates/emails/appointment_approved.html -->
+{% extends "emails/email_base.html" %}
+
+{% block content %}
+<h2>Appointment Approved</h2>
+<p>Dear {{ patient_name }},</p>
+<p>Good news! Your appointment has been <strong>approved</strong> and confirmed by {{ doctor_name }}.</p>
+
+<table>
+    <tr>
+        <th colspan="2">Appointment Details</th>
+    </tr>
+    <tr>
+        <td><strong>Doctor</strong></td>
+        <td>{{ doctor_name }}</td>
+    </tr>
+    <tr>
+        <td><strong>Date</strong></td>
+        <td>{{ date }}</td>
+    </tr>
+    <tr>
+        <td><strong>Time</strong></td>
+        <td>{{ time }}</td>
+    </tr>
+    <tr>
+        <td><strong>Reason</strong></td>
+        <td>{{ reason }}</td>
+    </tr>
+</table>
+
+<p>Please remember to arrive 15 minutes before your scheduled time. Bring any relevant medical records or test results that may help with your consultation.</p>
+
+<p>If you need to reschedule or cancel your appointment, please contact our reception at least 24 hours in advance.</p>
+
+<p>We look forward to seeing you!</p>
+
+<p>Warm regards,<br>Hospital Integrated System Team</p>
+{% endblock %}

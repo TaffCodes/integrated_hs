@@ -31,7 +31,7 @@ class Doctor(models.Model):
     specialization = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.user.username
+        return self.user.get_full_name()
 
 class Nurse(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -63,12 +63,12 @@ class Appointment(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     date = models.DateTimeField()
-    duration = models.DurationField(default=timedelta(minutes=45))
+    duration = models.DurationField(default=timedelta(minutes=60))
     status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Denied', 'Denied')])
     reason = models.TextField()
 
     def __str__(self):
-        return f"Appointment {self.id} - {self.patient.user.username} with {self.doctor.user.username}"
+        return f"Appointment {self.id} - {self.patient.user.get_full_name()} with {self.doctor.user.get_full_name()}"
 
 class Diagnosis(models.Model):
     appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE)
