@@ -483,7 +483,7 @@ def create_diagnosis(request, appointment_id):
 @login_required
 def doctor_diagnoses(request):
     doctor = request.user.doctor
-    diagnoses = Diagnosis.objects.filter(doctor=doctor).order_by('appointment__date')
+    diagnoses = Diagnosis.objects.filter(doctor=doctor).order_by('-appointment__date')
     return render(request, './doctor_diagnoses.html', {'diagnoses': diagnoses})
 
 @login_required
