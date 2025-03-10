@@ -127,7 +127,7 @@ class DoctorDashboardForm(forms.Form):
 
 
 class DiagnosisForm(forms.ModelForm):
-    appointment = forms.ModelChoiceField(queryset=Appointment.objects.none(), required=True, label="Select Appointment")
+    appointment = forms.ModelChoiceField(queryset=Appointment.objects.order_by(), required=True, label="Select Appointment")
     medication = forms.CharField(max_length=100, required=True, label="Medication")
     dosage = forms.CharField(max_length=100, required=True, label="Dosage")
     frequency = forms.CharField(max_length=100, required=True, label="Frequency")
@@ -140,6 +140,47 @@ class DiagnosisForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         doctor = kwargs.pop('doctor', None)
+        appointment_id = kwargs.pop('appointment_id', None)
         super().__init__(*args, **kwargs)
+        
         if doctor:
-            self.fields['appointment'].queryset = Appointment.objects.filter(doctor=doctor).order_by('date')
+            # Filter appointments by doctor
+            self.fields['appointment'].queryset = Appointment.objects.filter(
+                doctor=doctor, 
+                status='Approved'
+            ).order_by('-date')
+            
+            # If a specific appointment was requested, pre-select it
+            if appointment_id:
+                try:
+                    # Try to get the specific appointment
+                    appointment = Appointment.objects.get(id=appointment_id, doctor=doctor)
+                    
+                    # Make sure this appointment is in the queryset
+                    if appointment in self.fields['appointment'].queryset:
+                        # Pre-select this appointment in the form
+                        self.fields['appointment'].initial = appointment
+                        
+                        # Optionally disable the field to prevent changing
+                        self.fields['appointment'].widget.attrs['disabled'] = True
+                        self.fields['appointment'].widget.attrs['readonly'] = True
+                        
+                        # Store the original value to use in clean method
+                        self.appointment_id = appointment_id
+                    
+                except Appointment.DoesNotExist:
+                    pass
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # If the appointment field was disabled, it won't be in cleaned_data
+        # We need to restore it from our stored value
+        if hasattr(self, 'appointment_id') and 'appointment' not in cleaned_data:
+            try:
+                appointment = Appointment.objects.get(id=self.appointment_id)
+                cleaned_data['appointment'] = appointment
+            except Appointment.DoesNotExist:
+                pass
+                
+        return cleaned_data

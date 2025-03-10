@@ -88,14 +88,14 @@
                                     <div class="card-body">
                                         <h5 class="card-title brand-text">
                                             <i class="material-icons me-1">person</i>
-                                            {{ diagnosis.patient.user.username }}
+                                            {{ diagnosis.patient.user.get_full_name }}
                                         </h5>
                                         <div class="mb-3">
                                             <h6 class="text-muted mb-1">
                                                 <i class="material-icons me-1">person_pin</i>
                                                 Attending Physician
                                             </h6>
-                                            <p class="mb-0">Dr. {{ diagnosis.doctor.user.username }}</p>
+                                            <p class="mb-0">Dr. {{ user.doctor.user.get_full_name }}</p>
                                         </div>
                                         <div class="mb-3">
                                             <h6 class="text-muted mb-1">

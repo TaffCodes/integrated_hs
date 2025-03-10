@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from django.utils.timezone import is_naive, make_naive
 from .predict import generate_insights
 
-# Add this utility function at the top of your views.py file or in a utils.py file
 def get_filtered_available_timeslots(doctor_id):
     """
     Utility function to get available time slots for a doctor,
@@ -413,15 +412,24 @@ logger = logging.getLogger(__name__)
 
 
 @login_required
-def create_diagnosis(request, appointment_id):
+def create_diagnosis(request, appointment_id=None):
+    doctor = request.user.doctor
+    
+    try:
+        appointment = Appointment.objects.get(id=appointment_id, doctor=doctor)
+    except Appointment.DoesNotExist:
+        return redirect('doctor_dashboard')
+    
     appointment = Appointment.objects.get(id=appointment_id)
     if request.method == 'POST':
-        diagnosis_form = DiagnosisForm(request.POST, doctor=request.user.doctor)
+        
+        initial_data = {'appointment': appointment.id} if appointment else {}
+        diagnosis_form = DiagnosisForm(request.POST, doctor=doctor, initial=initial_data)
         if diagnosis_form.is_valid():
             diagnosis = diagnosis_form.save(commit=False)
-            diagnosis.doctor = request.user.doctor
+            diagnosis.doctor = doctor
             diagnosis.patient = appointment.patient
-            diagnosis.appointment = appointment
+            diagnosis.appointment = appointment.order_by('-date').first()
             diagnosis.save()
             logger.info(f"Diagnosis saved: {diagnosis}")
 
