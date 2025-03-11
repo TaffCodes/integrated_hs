@@ -171,5 +171,5 @@ EMAIL_HOST = 'smtp.gmail.com'  # Change to your email provider's SMTP server
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mauyaroy@gmail.com'  # Change to your email address
-EMAIL_HOST_PASSWORD = 'dvtt ifol csbg okdf'  # Change to your email password or app password
+EMAIL_HOST_PASSWORD = ''  # Change to your app password
 DEFAULT_FROM_EMAIL = 'Hospital Integrated System <hospital@gmail.com>'
